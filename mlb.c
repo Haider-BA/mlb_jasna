@@ -513,13 +513,14 @@ static void mlb_solve_matrix(double **M, double *b, double *m0) {
     for (y=yl; y<yh; ++y, m+=lbmodel.n_vel) {
       ind = 2*(x*lblattice.stride[0] + y);
       for (j=0; j<lbmodel.n_dim; ++j) {
-	//fprintf(stderr, "phi[%d] = %f phi_new[%d] = %f u(%d,%d)[%d] = %f\n",ind+j,phi[ind+j],ind+j,phi_new[ind+j],x,y,j,((LB_Moments *)m)->u[j]);
+	if (fabs(phi[ind+j]-((LB_Moments *)m)->u[j]) > TOLERANCE) {
+	  fprintf(stderr, "phi[%d] = %f phi_new[%d] = %f u(%d,%d)[%d] = %f\n",ind+j,phi[ind+j],ind+j,phi_new[ind+j],x,y,j,((LB_Moments *)m)->u[j]);
+	}
 	double rho = ((LB_Moments *)m)->rho;
 	double *q  = ((LB_Moments *)m)->j;
-	double *u  = ((LB_Moments *)m)->u;
 	double *g  = ((LB_Moments *)m)->force;
 	((LB_Moments *)m)->u[j]     = phi[ind+j];
-	((LB_Moments *)m)->jcorr[j] = rho*u[j] - q[j] - 0.5*g[j];
+	((LB_Moments *)m)->jcorr[j] = rho*phi[ind+j] - q[j] - 0.5*g[j];
       }
     }
   }
@@ -568,6 +569,8 @@ static void ic_write(LB_Moments *m, int x, int y) {
   double *g  = m->force;
   double *u  = m->u;
   double *jc = m->jcorr;
+
+  //jc[0] = jc[1] = 0.;
 
   u[0] = (j[0] + 0.5*g[0] + jc[0])/rho;
   u[1] = (j[1] + 0.5*g[1] + jc[1])/rho;
@@ -868,10 +871,10 @@ inline static void mlb_calc_xi(double Xi[][lbmodel.n_dim][lbmodel.n_dim],
 			    + delta(i,j) * ( *p*Dpr[k] + *pmrdp*u[k]*divu )
 			    + delta(j,k) * ( *p*Dpr[i] + *pmrdp*u[i]*divu )
 			    + delta(k,i) * ( *p*Dpr[j] + *pmrdp*u[j]*divu ) ) );
-	Xi[i][j][k] -= ( (gamma - 1.) * cs2
-			* ( delta(i,j)*jcorr[k]
-			    + delta(j,k)*jcorr[i]
-			    + delta(k,i)*jcorr[j] ) );
+	Xi[i][j][k] -= ( (gamma - 1.) * eq_state(RHO_MEAN)
+			 * ( delta(i,j)*jcorr[k]
+			     + delta(j,k)*jcorr[i]
+			     + delta(k,i)*jcorr[j] ) );
       }
     }
   }
@@ -914,5 +917,5 @@ void mlb_correction_collisions(double *f) {
   }
 
 }
-   
+
 /***********************************************************************/

@@ -25,9 +25,9 @@ mpl.rc(('xtick','ytick'), labelsize=tickfontsize)
 R1 = 0.5
 R2 = 1.0
 R3 = 2.0*R2-R1
-S1 = 0.4
-S2 = 0.6
-W  = 0.5*(R2-R1)
+S1 = 0.6
+S2 = 0.75
+W  = 0.25*(R2-R1)
 
 Tmin = 0.5
 Tmax = 1.0

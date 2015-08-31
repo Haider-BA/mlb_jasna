@@ -108,7 +108,7 @@ void lb_check_halo() {
 	  return;
 	}
 	if (fabs(m2[i]-m1[i]) > TOLERANCE) {
-	  fprintf(stderr, "m-Halo error at (%d,%d) to (%d,%d) [%d]\n", x, y, xt, y, i);
+	  fprintf(stderr, "m-Halo error at (%d,%d) to (%d,%d) [%d]\n", x, y, x, yt, i);
 	  return;
 	}
       }
@@ -125,7 +125,7 @@ void lb_check_halo() {
 	  return;
         }
 	if (fabs(m2[i]-m1[i]) > TOLERANCE) {
-	  fprintf(stderr, "m-Halo error at (%d,%d) to (%d,%d) [%d]\n", x, y, xt, y, i);
+	  fprintf(stderr, "m-Halo error at (%d,%d) to (%d,%d) [%d]\n", x, y, x, yt, i);
 	  return;
 	}
       }
@@ -317,6 +317,17 @@ static void lb_collisions(double *f, int x, int y) {
   mlb_interface_collisions(f);
 
   mlb_correction_collisions(f);
+
+  int i;
+  double rho, w[lbmodel.n_vel];
+  for (i=0; i<lbmodel.n_vel; ++i) {
+    if (f[i] < 0.) {
+      rho = (f+lbmodel.n_vel*lblattice.halo_grid_volume)[0];
+      lb_weights(w, eq_state(rho));
+      fprintf(stderr, "Negative populations at (%d,%d) f[%d] = %f rho = %f w[%d] = %f\n", x, y, i, f[i], rho, i, w[i]);
+      exit(-1);
+    }
+  }
 
 }
 
